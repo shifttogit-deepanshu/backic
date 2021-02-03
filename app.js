@@ -165,16 +165,26 @@ db.once('open', function() {
   
 app.post('/authuser',(req,res)=>{
   User.find({username:req.body.username,password:req.body.password},(err,result)=>{
-    if(err || result.length==0){
-      res.status(404).send()
+    if(err || result.length !==1){
+      res.status(404).send('authentication failed!')
       return
     }
-    console.log(result)
-    res.status(200).send(result)
+    console.log(result[0]._id)
+    res.status(200).send({uid:result[0]._id})
     console.log("user authenticated")
   })    
 })
-  
+
+app.post('/getcontainers',(req,res)=>{
+  User.findById(req.body.uid,(err,result)=>{
+    if(err){
+      res.status(404).send('No containers found')
+      return
+    }
+    res.status(200).send({uid:result._id,containers:result.containers})
+    console.log(result)
+  })
+})
 
 });
 
