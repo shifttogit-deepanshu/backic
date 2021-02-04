@@ -43,10 +43,20 @@ db.once('open', function() {
     
   })
 
+  const containerLogsSchema = new mongoose.Schema({
+    _id:String,
+    data:[{
+      _id:Number,
+      temp: Number,
+      lat: Number,
+      long: Number}]
+})
+
   const User = mongoose.model('User',userSchema)
 
   const Container = mongoose.model('Container',containerSchema)
 
+  const ContainerLogs = mongoose.model('ContainerLogs',containerLogsSchema)
 //   const user1 = new User({
 //     username: "user@123",
 //     password: "user@123",
@@ -173,7 +183,85 @@ db.once('open', function() {
 //       console.log(JSON.stringify(saveFamily))
 //     });
 
-  
+// const containerLogsA1 = new ContainerLogs({
+//   _id:"conA1",
+//   data:[]
+// })
+// const containerLogsA2 = new ContainerLogs({
+//   _id:"conA2",
+//   data:[]
+// })
+// const containerLogsA3 = new ContainerLogs({
+//   _id:"conA3",
+//   data:[]
+// })
+// const containerLogsA4 = new ContainerLogs({
+//   _id:"conA4",
+//   data:[]
+// })
+// const containerLogsA5 = new ContainerLogs({
+//   _id:"conA5",
+//   data:[]
+// })
+// const containerLogsB1 = new ContainerLogs({
+//   _id:"conB1",
+//   data:[]
+// })
+// const containerLogsB2 = new ContainerLogs({
+//   _id:"conB2",
+//   data:[]
+// })
+
+// containerLogsA1.save((err,result)=>{
+//   if(err){
+//     console.log("err",err)
+//   }
+//   console.log(JSON.stringify(result))
+
+// })
+// containerLogsA2.save((err,result)=>{
+//   if(err){
+//     console.log("err",err)
+//   }
+//   console.log(JSON.stringify(result))
+
+// })
+// containerLogsA3.save((err,result)=>{
+//   if(err){
+//     console.log("err",err)
+//   }
+//   console.log(JSON.stringify(result))
+
+// })
+// containerLogsA4.save((err,result)=>{
+//   if(err){
+//     console.log("err",err)
+//   }
+//   console.log(JSON.stringify(result))
+
+// })
+// containerLogsA5.save((err,result)=>{
+//   if(err){
+//     console.log("err",err)
+//   }
+//   console.log(JSON.stringify(result))
+
+// })
+// containerLogsB1.save((err,result)=>{
+//   if(err){
+//     console.log("err",err)
+//   }
+//   console.log(JSON.stringify(result))
+
+// })
+// containerLogsB2.save((err,result)=>{
+//   if(err){
+//     console.log("err",err)
+//   }
+//   console.log(JSON.stringify(result))
+
+// })
+
 app.post('/authuser',(req,res)=>{
   User.find({username:req.body.username,password:req.body.password},(err,result)=>{
     if(err || result.length !==1){
@@ -223,7 +311,16 @@ app.post('/getcontainers',async (req,res)=>{
 
 
 app.get('/containerdata',(req,res)=>{
-  Container.updateOne({_id:req.query.cid},{$set:{temp:(req.query.temp || 0 ),lat:(req.query.lat || 0),long:(req.query.long || 0)}},(err,result)=>{
+  
+  ContainerLogs.updateOne({_id:req.query.cid},{$push:{data:{_id:new Date().getTime(),temp:(req.query.temp || 0 ),lat:(req.query.lat || 0),long:(req.query.long || 0)}}},(err,result)=>{
+    if(err){
+        res.status(501).send(err)
+        return
+  
+    }
+    console.log("added logs")
+  })
+  Container.updateOne({_id:req.query.cid},{$set:{temp:(req.query.temp || 0 ),lat:(req.query.lat || 0),long:(req.query.long || 0),timeStamp:new Date().getTime()}},(err,result)=>{
     if(err){
       res.status(500).send(err)
       return
@@ -233,6 +330,15 @@ app.get('/containerdata',(req,res)=>{
   })
   
 
+})
+
+app.get('/getlogs',(req,res)=>{
+  ContainerLogs.find({_id:req.query.cid},(err,result)=>{
+    if(err){
+      res.status(400).send("err",err)
+    }
+    res.status(200).send(result[0])
+  })
 })
 
 });
