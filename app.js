@@ -1,5 +1,6 @@
 const express = require('express')
 const app = express()
+// const http = require('http').createServer(app);
 var cors = require('cors')
 const port = process.env.PORT || 3000
 
@@ -187,29 +188,42 @@ app.post('/authuser',(req,res)=>{
 
 app.post('/getcontainers',async (req,res)=>{
   const allArr = await User.findById(req.body.uid) 
-  let conObj = []
-  for await (let container of allArr.containers){
-    // async ()=>{
-      await Container.find({_id:container._id},(err,result)=>{
-        if(err){
-          console.log(err)
-        }
-        console.log(result)
-        conObj.push(result[0])
+  const getContainers = new Promise(async (resolve,reject)=>{
+    let conObj = []
+    for(let container of allArr.containers){
+      await Container.find({_id:container._id}).then((con)=>{
+        conObj.push(con[0])
+      }).catch((err)=>{
+        return reject(err)
       })
-    // }
-    // console.log(container)
-  }
-  // await Container.find({_id:allArr.containers._id},(err,result)=>{
-  //   console.log(result)
-  // })
+      
+    }
+    resolve(conObj)
+  })
+  getContainers.then((conObj)=>{
+    res.status(200).send({uid:req.body.uid,containers:conObj})
+  }).catch((err)=>{
+    res.status(500).send("error",err)
+    console.log("err",err)
+  })
 
-  res.status(200).send({uid:req.body.uid,containers:conObj})
-  console.log("hehe")
+//   const loop = async _=>{
+//   for(let i=0;i<allArr.containers.length;i++){
+//       const container = await Container.find({_id:allArr.containers[i]._id},(err,result)=>{
+//         if(err){
+//           console.log(err)
+//         }
+//         console.log(result)
+//       })
+//       console.log("container")
+//   }
+// }
+// loop()
 })
 
-app.patch('/containerdata',(req,res)=>{
-  Container.updateOne({_id:req.query.cid},{$set:{temp:req.query.temp,lat:req.query.lat,long:req.query.long}},(err,result)=>{
+
+app.get('/containerdata',(req,res)=>{
+  Container.updateOne({_id:req.query.cid},{$set:{temp:(req.query.temp || 0 ),lat:(req.query.lat || 0),long:(req.query.long || 0)}},(err,result)=>{
     if(err){
       res.status(500).send(err)
       return
