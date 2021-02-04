@@ -194,6 +194,7 @@ app.post('/getcontainers',async (req,res)=>{
         if(err){
           console.log(err)
         }
+        console.log(result)
         conObj.push(result[0])
       })
     // }
@@ -203,23 +204,22 @@ app.post('/getcontainers',async (req,res)=>{
   //   console.log(result)
   // })
 
-  res.status(200).send(conObj)
+  res.status(200).send({uid:req.body.uid,containers:conObj})
+  console.log("hehe")
 })
 
-// app.patch('/containerdata',(req,res)=>{
-//   console.log(req.query)
-//   // User.find({'containers._id':req.query.cid},'_id',(err,result)=>{
-//   //   result.forEach(res=>{
-//   //     User.findByIdAndUpdate()
-//   //     // res.id
-//   //   })
+app.patch('/containerdata',(req,res)=>{
+  Container.updateOne({_id:req.query.cid},{$set:{temp:req.query.temp,lat:req.query.lat,long:req.query.long}},(err,result)=>{
+    if(err){
+      res.status(500).send(err)
+      return
 
-//   // })
-//   // User.updateMany({'containers._id':req.query.cid},{$set:{'containers.$.temp':req.query.temp}}
-  
+    }
+    res.status(200).send(result)
+  })
   
 
-// })
+})
 
 });
 
