@@ -29,79 +29,89 @@ db.once('open', function() {
     password : String,
     containers : [{
       _id:String,
-      temp: String,
-      lat: String,
-      long: String,
-      timeStamp: Number
     }],
 
   })
 
-//   const containerSchema = new mongoose.Schema({
-//     _id:String,
-//     data:[{
-//       temp: String,
-//       lat: String,
-//       long: String,
-//       timeStamp: Number
-//     }]
+  const containerSchema = new mongoose.Schema({
+      _id:String,
+      temp: String,
+      lat: String,
+      long: String,
+      timeStamp: Number
     
-//   })
+  })
 
   const User = mongoose.model('User',userSchema)
 
-//   const Container = mongoose.model('Container',containerSchema)
+  const Container = mongoose.model('Container',containerSchema)
 
 //   const user1 = new User({
 //     username: "user@123",
 //     password: "user@123",
-//     containers: [{_id:"conA1",temp:"12.3",lat:"34.5",long:"87.3",timeStamp:2342345324234},
-//     {_id:"conA2",temp:"45.3",lat:"67.5",long:"17.3",timeStamp:234234345134},
-//     {_id:"conA3",temp:"16.3",lat:"37.5",long:"86.3",timeStamp:2342345324234},
-//     {_id:"conA4",temp:"17.3",lat:"38.5",long:"88.3",timeStamp:2342345324234},
-//     {_id:"conA5",temp:"12.3",lat:"33.5",long:"8793",timeStamp:2342345324234}
+//     containers: [{_id:"conA1"},
+//     {_id:"conA2"},
+//     {_id:"conA3"},
+//     {_id:"conA4"},
+//     {_id:"conA5"}
 //   ]
 //   })
 
 //   const user2 = new User({
 //     username: "user@456",
 //     password: "user@456",
-//     containers: [{_id:"conB1",temp:"17.3",lat:"33.5",long:"80.3",timeStamp:2342344565324234},{_id:"conB2",temp:"41.3",lat:"67.5",long:"19.3",timeStamp:234246534345134}]
+//     containers: [{_id:"conB1"},{_id:"conB2"},{_id:"conA1"}]
 //   })
 // const containerA1 = new Container({
 //   _id:"conA1",
-//   data:[{temp:"12.3",lat:"34.5",long:"87.3",timeStamp:2342345324234},{temp:"45.3",lat:"67.5",long:"17.3",timeStamp:234234345134}],
+//   temp:"12.3",
+//   lat:"34.5",
+//   long:"87.3",
+//   timeStamp:2342345324234
 // })
-
 // const containerA2 = new Container({
 //   _id:"conA2",
-//   data:[{temp:"12.3",lat:"34.5",long:"87.3",timeStamp:2342345324234},{temp:"45.3",lat:"67.5",long:"17.3",timeStamp:234234345134}],
+//   temp:"12.3",
+//   lat:"34.5",
+//   long:"87.3",
+//   timeStamp:2342345324234
 // })
-
 // const containerA3 = new Container({
 //   _id:"conA3",
-//   data:[{temp:"12.3",lat:"34.5",long:"87.3",timeStamp:2342345324234},{temp:"45.3",lat:"67.5",long:"17.3",timeStamp:234234345134}],
+//   temp:"12.3",
+//   lat:"34.5",
+//   long:"87.3",
+//   timeStamp:2342345324234
 // })
-
 // const containerA4 = new Container({
 //   _id:"conA4",
-//   data:[{temp:"12.3",lat:"34.5",long:"87.3",timeStamp:2342345324234},{temp:"45.3",lat:"67.5",long:"17.3",timeStamp:234234345134}],
+//   temp:"12.3",
+//   lat:"34.5",
+//   long:"87.3",
+//   timeStamp:2342345324234
 // })
-
 // const containerA5 = new Container({
 //   _id:"conA5",
-//   data:[{temp:"12.3",lat:"34.5",long:"87.3",timeStamp:2342345324234},{temp:"45.3",lat:"67.5",long:"17.3",timeStamp:234234345134}],
+//   temp:"12.3",
+//   lat:"34.5",
+//   long:"87.3",
+//   timeStamp:2342345324234
 // })
-
 // const containerB1 = new Container({
 //   _id:"conB1",
-//   data:[{temp:"12.3",lat:"34.5",long:"87.3",timeStamp:2342345324234},{temp:"45.3",lat:"67.5",long:"17.3",timeStamp:234234345134}],
+//   temp:"12.3",
+//   lat:"34.5",
+//   long:"87.3",
+//   timeStamp:2342345324234
 // })
-
 // const containerB2 = new Container({
 //   _id:"conB2",
-//   data:[{temp:"12.3",lat:"34.5",long:"87.3",timeStamp:2342345324234},{temp:"45.3",lat:"67.5",long:"17.3",timeStamp:234234345134}],
+//   temp:"12.3",
+//   lat:"34.5",
+//   long:"87.3",
+//   timeStamp:2342345324234
 // })
+
 
 // containerA1.save((err, saveFamily) => {
 //   if(err){
@@ -175,24 +185,45 @@ app.post('/authuser',(req,res)=>{
   })    
 })
 
-app.post('/getcontainers',(req,res)=>{
-  User.findById(req.body.uid,(err,result)=>{
-    if(err){
-      res.status(404).send('No containers found')
-      return
-    }
-    res.status(200).send({uid:result._id,containers:result.containers})
-    console.log(result)
-  })
+app.post('/getcontainers',async (req,res)=>{
+  const allArr = await User.findById(req.body.uid) 
+  let conObj = []
+  for await (let container of allArr.containers){
+    // async ()=>{
+      await Container.find({_id:container._id},(err,result)=>{
+        if(err){
+          console.log(err)
+        }
+        conObj.push(result[0])
+      })
+    // }
+    // console.log(container)
+  }
+  // await Container.find({_id:allArr.containers._id},(err,result)=>{
+  //   console.log(result)
+  // })
+
+  res.status(200).send(conObj)
 })
+
+// app.patch('/containerdata',(req,res)=>{
+//   console.log(req.query)
+//   // User.find({'containers._id':req.query.cid},'_id',(err,result)=>{
+//   //   result.forEach(res=>{
+//   //     User.findByIdAndUpdate()
+//   //     // res.id
+//   //   })
+
+//   // })
+//   // User.updateMany({'containers._id':req.query.cid},{$set:{'containers.$.temp':req.query.temp}}
+  
+  
+
+// })
 
 });
 
 
-app.get('/getdata',(req,res)=>{
-  
-  res.send({data:"this is data with cors"})
-})
 
 app.listen(port, () => {
   console.log(`Example app listening at http://localhost:${port}`)
