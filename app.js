@@ -337,7 +337,7 @@ app.get('/getlogs',(req,res)=>{
     if(err){
       res.status(400).send("err",err)
     }
-    res.status(200).send(result[0])
+    res.status(200).send(result)
   })
 })
 
