@@ -1,9 +1,20 @@
 const express = require('express')
+const moment = require('moment')
 const app = express()
 // const http = require('http').createServer(app);
 var cors = require('cors')
 const port = process.env.PORT || 3000
+const nodemailer = require("nodemailer");
 
+let transporter = nodemailer.createTransport({
+  host: "outlook.office365.com",
+  port: 587,
+  secure: false, // true for 465, false for other ports
+  auth: {
+    user: 'teammediport@outlook.com', // generated ethereal user
+    pass: 'mediport4040', // generated ethereal password
+  },
+});
 
 
 app.use(cors())
@@ -12,7 +23,7 @@ app.use(express.json()) // for parsing application/json
 app.use(express.urlencoded({ extended: true })) // for parsing application/x-www-form-urlencoded
 
 app.get('/', (req, res) => {
-  res.send('Hello World!')
+  res.send('Welcome to Mediport Server... You must go to our app url https://calm-stone-0f589fa00.azurestaticapps.net/')
 })
 
 const mongoose = require('mongoose');
@@ -309,7 +320,6 @@ app.post('/getcontainers',async (req,res)=>{
 // loop()
 })
 
-
 app.get('/containerdata',(req,res)=>{
   
   ContainerLogs.updateOne({_id:req.query.cid},{$push:{data:{_id:new Date().getTime(),temp:(req.query.temp || 0 ),lat:(req.query.lat || 0),long:(req.query.long || 0)}}},(err,result)=>{
@@ -328,7 +338,19 @@ app.get('/containerdata',(req,res)=>{
     }
     res.status(200).send(result)
   })
-  
+  if(req.query.temp>8){
+    transporter.sendMail({
+      from: 'teammediport@outlook.com', // sender address
+      to: "deepanshu_sharma51@manavrachna.net", // list of receivers
+      subject: "Temperature Alert!", // Subject line
+      text: "Alert!", // plain text body
+      html: "<h1>Alert!</h1><br><h2>The temperature of container " + req.query.cid + " has crossed maximum safe limit</h2><br><h3>Temperature was recorded to be " + req.query.temp + "°C at " + moment(new Date().getTime()).format("Do MMM YYYY , HH:mm:ss:SS"), // html body
+    }).then((result)=>{
+      res.send(result)
+    }).catch((e)=>{
+      res.send(e)
+    });
+  }
 
 })
 
